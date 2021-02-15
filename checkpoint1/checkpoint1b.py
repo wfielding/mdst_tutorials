@@ -17,20 +17,47 @@ Once you are finished with this program, you should run `python preprocess.py` f
 This should load the data, perform preprocessing, and save the output to the data folder.
 
 """
+import pandas as pd
 
 def remove_percents(df, col):
+    df = fill_zero_iron(df)
+    for i in df.index:
+        df.loc[i,col] = str(df.loc[i,col])
+        if df.loc[i,col][-1] == '%':
+            df.loc[i,col] = df.loc[i,col][:-1]
+    pd.to_numeric(df[col])
     return df
 
 def fill_zero_iron(df):
+    for i in df.index:
+        df.loc[i,'Iron (% DV)'] = str(df.loc[i,'Iron (% DV)'])
+        if df.loc[i,'Iron (% DV)'] == "nan":
+            df.loc[i,'Iron (% DV)'] = 0
     return df
     
 def fix_caffeine(df):
+    for i in df.index:
+        a = df.loc[i, 'Caffeine (mg)']
+        if a == 'varies' or a == 'Varies':
+            df.loc[i, 'Caffeine (mg)'] = "nan"
+    med = df['Caffeine (mg)'].median(skipna = True)
+    for i in df.index:
+        if str(df.loc[i, 'Caffeine (mg)']) == "nan":
+            df.loc[i, 'Caffeine (mg)'] = med
+    pd.to_numeric(df['Caffeine (mg)'])
     return df
 
 def standardize_names(df):
+    df.columns = [x.lower() for x in df.columns]
+    print(df.columns)
+    import re
+    df.columns = [re.sub(r"\([^()]*\)", "", x) for x in df.columns]
     return df
 
 def fix_strings(df, col):
+    for i in df.index:
+        df.loc[i,col] = ''.join([i for i in df.loc[i,col] if i.isalpha()])
+        df.loc[i,col] = df.loc[i,col].lower()
     return df
 
 
@@ -66,6 +93,7 @@ def main():
     
     # now that the data is all clean, save your output to the `data` folder as 'starbucks_clean.csv'
     # you will use this file in checkpoint 2
+    df.to_csv('/Users/williamfielding/Desktop/mdst_tutorials/data/starbucks_clean.csv')
     
     
 
